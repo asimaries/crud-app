@@ -6,8 +6,8 @@ services:
     image: postgres:17-alpine
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: abc123
-      POSTGRES_DB: info_db
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: crud_db
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
       - pgdata:/var/lib/postgresql/data
