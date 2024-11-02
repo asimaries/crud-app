@@ -1,5 +1,4 @@
 use crate::model::{User, UserInfo};
-use dotenv::dotenv;
 use sqlx::{postgres::PgPoolOptions, Error, PgPool};
 use std::env;
 
@@ -10,7 +9,6 @@ pub struct UserService {
 
 impl UserService {
     pub async fn new() -> Result<Self, Error> {
-        dotenv().ok();
         let uri = env::var("DATABASE_URL").expect("DATABASE_URL not set");
 
         let pool = PgPoolOptions::new()
