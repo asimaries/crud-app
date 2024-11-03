@@ -2,3 +2,4 @@ target
 .env
 docker
 conf
+Dockerfile
