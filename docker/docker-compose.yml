@@ -49,6 +49,8 @@ services:
     ports:
       - "6379:6379"
       - "8001:8001"
+    volumes:
+      - redisdata:/data
     depends_on:
       - nginx
       - api_instance_1
@@ -56,3 +58,6 @@ services:
 
 volumes:
   pgdata:
+    name: crud_pgdata
+  redisdata:
+    name: crud_redisdata
