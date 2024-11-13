@@ -1,4 +1,4 @@
-use std::{sync::Arc, time::Duration};
+use std::{env, sync::Arc, time::Duration};
 
 use axum::{
     body::Body,
@@ -19,7 +19,13 @@ pub struct RateLimiter {
 impl RateLimiter {
     pub fn new(requests_per_minute: u32, window_size: Duration) -> Self {
         Self {
-            client: Arc::new(Client::open("redis://0.0.0.0/").expect("Redis not avialable")),
+            client: Arc::new(
+                Client::open(format!(
+                    "redis://{}/",
+                    env::var("REDIS_HOST").unwrap_or("0.0.0.0".to_string())
+                ))
+                .expect("Redis not avialable"),
+            ),
             requests_per_minute,
             window_size,
         }
@@ -53,23 +59,21 @@ pub async fn rate_limit_middleware(
 ) -> impl IntoResponse {
     let ip = request
         .headers()
-        .get("x-forward-for")
+        .get("x-forwarded-for")
         .map(|x| x.to_str())
-        .unwrap_or(
-            request
-                .headers()
-                .get("host")
-                .map(|x| x.to_str())
-                .unwrap()
-        ).unwrap_or("unknown");
-
+        .unwrap_or(request.headers().get("host").map(|x| x.to_str()).unwrap())
+        .unwrap_or("unknown");
+    // LOGGER
+    println!("{:?}", request.headers());
+    println!("{:?}", request.body());
+    println!("{:?}", request.method());
     println!("{:?}", ip);
 
     let key = format!("{}:rate_limit", ip);
 
     match limiter.check_rate_limit(&key).await {
         Ok((false, expiry)) => {
-            // println!("Rate limit exceeded for IP: {}", ip);
+            println!("Rate limit exceeded for IP: {}", ip);
             Err(Response::builder()
                 .status(StatusCode::OK)
                 .header(header::CONTENT_TYPE, "application/json")

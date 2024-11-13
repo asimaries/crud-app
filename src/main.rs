@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{env, time::Duration};
 
 use axum::{
     middleware,
@@ -19,7 +19,13 @@ async fn main() {
     dotenv().ok();
     let service = UserService::new().await.unwrap();
 
-    let rate_limit = RateLimiter::new(3, Duration::from_secs(10));
+    let rate_limit = RateLimiter::new(
+        env::var("RATE_LIMIT_MAX_REQ_PER_WINDOW")
+            .unwrap_or("3".to_string())
+            .parse::<u32>()
+            .unwrap(),
+        Duration::from_secs(10),
+    );
 
     let user_router = Router::new()
         .route("/:id", get(get_user_by_id))
