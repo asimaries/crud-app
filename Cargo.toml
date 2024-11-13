@@ -7,6 +7,7 @@ edition = "2021"
 axum = "0.7.7"
 dotenv = "0.15.0"
 dotenvy = "0.15.7"
+redis = "0.27.5"
 serde = { version = "1.0.214", features = ["derive"] }
 serde_json = { version = "1.0.132" }
 sqlx = { version = "0.8.2", features = ["postgres", "macros", "runtime-tokio-native-tls", "uuid"] }

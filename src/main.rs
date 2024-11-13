@@ -1,4 +1,7 @@
+use std::time::Duration;
+
 use axum::{
+    middleware,
     routing::{delete, get, post, put},
     Extension, Router,
 };
@@ -7,12 +10,16 @@ use dotenv::dotenv;
 use user_service::UserService;
 mod controller;
 mod model;
+mod rate_limiter;
 mod user_service;
+use rate_limiter::{rate_limit_middleware, RateLimiter};
 
 #[tokio::main]
 async fn main() {
     dotenv().ok();
     let service = UserService::new().await.unwrap();
+
+    let rate_limit = RateLimiter::new(3, Duration::from_secs(10));
 
     let user_router = Router::new()
         .route("/:id", get(get_user_by_id))
@@ -25,10 +32,15 @@ async fn main() {
         .route("/health", get(health_check))
         .route("/users", get(list_users))
         .nest("/user", user_router)
-        .layer(Extension(service.clone()));
+        .layer(Extension(service.clone()))
+        .layer(middleware::from_fn_with_state(
+            rate_limit.clone(),
+            rate_limit_middleware,
+        ))
+        .with_state(rate_limit);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    println!("Listening");
+    println!("Listening on http://localhost:3000/health");
 
     let _ = axum::serve(listener, app).await.unwrap();
 }

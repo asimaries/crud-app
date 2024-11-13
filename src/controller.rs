@@ -8,7 +8,6 @@ use std::env;
 pub async fn list_users(service: Extension<UserService>) -> Result<Json<Vec<User>>, StatusCode> {
     match service.list_users().await {
         Ok(users) => {
-            println!("{:?}", users);
             return Ok(Json(users));
         }
         Err(err) => {
@@ -70,6 +69,6 @@ pub async fn delete_user(service: Extension<UserService>, Path(id): Path<i32>) -
 
 pub async fn health_check() -> Json<String> {
     let instance_name = env::var("INSTANCE_NAME").expect("something went wrong");
-
+    println!("health_check: {}", instance_name);
     Json::from(instance_name)
 }

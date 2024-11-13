@@ -1,11 +1,16 @@
 FROM rust:bookworm AS builder
 
 RUN apt-get update && \
-    apt-get install -y libpq-dev libssl-dev pkg-config
+    apt-get install -y --no-install-recommends \
+    libpq-dev \
+    libssl-dev \
+    pkg-config && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 COPY . .
-RUN cargo build --release 
+RUN cargo build --release
 
 FROM debian:bookworm
 
